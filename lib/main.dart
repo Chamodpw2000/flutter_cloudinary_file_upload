@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_cloudinary_file_upload/views/Home.dart';
+import 'package:flutter_cloudinary_file_upload/views/Login.dart';
 import 'package:flutter_cloudinary_file_upload/views/UploadArea.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -9,7 +10,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-);
+  );
   await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
@@ -22,7 +23,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(title: 'Online Drive', theme: ThemeData(), routes: {
       '/': (context) => const Home(),
-      '/upload': (context) => const Uploadarea()
+      '/upload': (context) => const Uploadarea(),
+      '/login': (context) => const Login(),
     });
   }
 }
