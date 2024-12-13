@@ -52,8 +52,54 @@ class _HomeState extends State<Home> {
                       crossAxisSpacing: 8,
                       mainAxisSpacing: 8,
                     ),
+                    itemCount: userUploadedFiles.length, // Add this line
+
                     itemBuilder: (context, index) {
-                      return Container();
+                      String name = userUploadedFiles[index]["name"];
+                      String ext = userUploadedFiles[index]["extention"];
+                      String public_id = userUploadedFiles[index]["public_id"];
+                      String fileUrl = userUploadedFiles[index]["url"];
+                      return Container(
+                        color: Color.fromARGB(255, 186, 173, 173),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Icon(ext == "png" || ext == "jpg" || ext == "jpeg"
+                                ? Icons.image
+                                : Icons.video_library),
+                            SizedBox(
+                              height: 20,
+                            ),
+                            Expanded(
+                              child: Image.network(
+                                fileUrl,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.image),
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
                     });
               }
             } else if (snapshot.hasError) {

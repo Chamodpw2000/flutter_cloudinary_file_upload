@@ -47,6 +47,7 @@ Future<bool> uploadToCloudinary(FilePickerResult? filePickerResult) async {
       "created_at": jasonResponse["created_at"],
       "bytes": jasonResponse["bytes"].toString(),
       "type": jasonResponse["type"],
+      "extention": filePickerResult.files.first.extension!,
       "name": filePickerResult.files.first.name,
     };
     var dbService = DbService();
