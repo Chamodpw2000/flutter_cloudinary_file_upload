@@ -43,6 +43,7 @@ class CheckUser extends StatefulWidget {
 class _CheckUserState extends State<CheckUser> {
   @override
   void initState() {
+    super.initState();
     AuthService().isUserLoggedIn().then((value) {
       if (value) {
         Navigator.pushReplacementNamed(context, '/home');
