@@ -1,6 +1,9 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cloudinary_file_upload/services/cloudinary_service.dart';
 import 'package:flutter_cloudinary_file_upload/services/db_service.dart';
+import 'package:flutter_cloudinary_file_upload/views/PreviewImage.dart';
+import 'package:flutter_cloudinary_file_upload/views/PreviewVideo.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -11,6 +14,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   FilePickerResult? _filePickerResult;
+
   void _openFilePicker() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
         allowMultiple: false,
@@ -52,52 +56,127 @@ class _HomeState extends State<Home> {
                       crossAxisSpacing: 8,
                       mainAxisSpacing: 8,
                     ),
-                    itemCount: userUploadedFiles.length, // Add this line
-
+                    itemCount: userUploadedFiles.length,
                     itemBuilder: (context, index) {
                       String name = userUploadedFiles[index]["name"];
                       String ext = userUploadedFiles[index]["extention"];
                       String public_id = userUploadedFiles[index]["public_id"];
                       String fileUrl = userUploadedFiles[index]["url"];
-                      return Container(
-                        color: Color.fromARGB(255, 186, 173, 173),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Icon(ext == "png" || ext == "jpg" || ext == "jpeg"
-                                ? Icons.image
-                                : Icons.video_library),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Expanded(
-                              child: Image.network(
-                                fileUrl,
-                                width: double.infinity,
-                                height: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            SizedBox(height: 20),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.image),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+
+                      return GestureDetector(
+                        onLongPress: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                    title: const Text("Delete file"),
+                                    content: const Text(
+                                        "Are you sure you want to delete?"),
+                                    actions: [
+                                      TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text("No")),
+                                      TextButton(
+                                          onPressed: () async {
+                                            final bool deleteResult =
+                                                await DbService().deleteFile(
+                                                    snapshot
+                                                        .data!.docs[index].id,
+                                                    public_id);
+                                            if (deleteResult) {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text("File deleted"),
+                                                ),
+                                              );
+                                            } else {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                      "Error in deleting file."),
+                                                ),
+                                              );
+                                            }
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text("Yes")),
+                                    ],
+                                  ));
+                        },
+                        onTap: () {
+                          if (ext == "png" || ext == "jpg" || ext == "jpeg") {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        Previewimage(url: fileUrl)));
+                          } else {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        Previewvideo(videoUrl: fileUrl)));
+                          }
+                        },
+                        child: Container(
+                          color: const Color.fromARGB(255, 186, 173, 173),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 20),
+                              ext == "png" || ext == "jpg" || ext == "jpeg"
+                                  ? Expanded(
+                                      child: Image.network(
+                                        fileUrl,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : const Center(
+                                      child: Icon(Icons.video_library)),
+                              const SizedBox(height: 20),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.image),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  )
-                                ],
+                                    IconButton(
+                                        onPressed: () async {
+                                          final download_result =
+                                              await downloadFileFromCloudinary(
+                                                  fileUrl, name);
+                                          if (download_result) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  "File downloaded successfully"),
+                                            ));
+                                          } else {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  "Error downloading file"),
+                                            ));
+                                          }
+                                        },
+                                        icon: Icon(Icons.download))
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     });
@@ -105,7 +184,7 @@ class _HomeState extends State<Home> {
             } else if (snapshot.hasError) {
               return Center(child: Text(snapshot.error.toString()));
             } else {
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(),
               );
             }
@@ -115,7 +194,7 @@ class _HomeState extends State<Home> {
           onPressed: () {
             _openFilePicker();
           },
-          child: Icon(Icons.add),
+          child: const Icon(Icons.add),
         ));
   }
 }

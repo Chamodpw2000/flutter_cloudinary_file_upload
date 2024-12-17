@@ -42,15 +42,16 @@ class CheckUser extends StatefulWidget {
 
 class _CheckUserState extends State<CheckUser> {
   @override
-  void initState(){
+  void initState() {
     AuthService().isUserLoggedIn().then((value) {
-      if(value){
+      if (value) {
         Navigator.pushReplacementNamed(context, '/home');
-      }else{
+      } else {
         Navigator.pushReplacementNamed(context, '/login');
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
